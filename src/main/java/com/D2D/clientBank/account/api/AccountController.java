@@ -2,6 +2,7 @@ package com.D2D.clientBank.account.api;
 
 import com.D2D.clientBank.account.api.dto.AccountRequest;
 import com.D2D.clientBank.account.api.dto.AccountResponse;
+import com.D2D.clientBank.account.db.Account;
 import com.D2D.clientBank.account.db.AccountDaoRepository;
 import com.D2D.clientBank.account.service.AccountFacade;
 import com.D2D.clientBank.webSocket.WebSocketController;
@@ -10,7 +11,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
 import java.util.List;
 
 
@@ -70,8 +70,14 @@ public class AccountController {
         if (success) {
             log.info("Transfer successful from {} to {}", fromNumber, toNumber);
 
-            Long customerId = accountDaoRepository.findByNumber(fromNumber).getCustomer().getId();
-            log.error(customerId.toString());
+            Account account = accountDaoRepository.findByNumber(fromNumber);
+            if (account == null || account.getCustomer() == null) {
+                log.error("Account or customer not found for account number: {}", fromNumber);
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Account or customer not found");
+            }
+
+            Long customerId = account.getCustomer().getId();
+
             String message = "Transfer of " + amount + " from account " + fromNumber + " to account " + toNumber + " was successful.";
             webSocketController.sendAccountUpdate(customerId, message);
 

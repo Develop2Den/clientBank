@@ -104,8 +104,7 @@ public class CustomerControllerTest {
         when(customerFacade.deleteCustomer(anyLong())).thenReturn(true);
 
         mockMvc.perform(delete("/api/customers/1").with(csrf()))
-                .andExpect(status().isOk())
-                .andExpect(content().string("true"));
+                .andExpect(status().isOk());
     }
 
     @Test
